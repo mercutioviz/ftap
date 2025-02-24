@@ -1,16 +1,18 @@
-# Find-The-Admin-Panel
+# Find The Admin Panel
 
 ## Description
 
-**Find-The-Admin-Panel** is a Python tool designed to identify potential admin panel URLs for websites. The tool checks common admin panel paths and returns the results, helping security researchers and developers find potential vulnerabilities in websites. This tool is essential for identifying web applications' admin login interfaces, which are typically hidden from the public.
+**Find The Admin Panel** is a powerful Python tool designed for web security researchers, penetration testers, and system administrators to efficiently discover admin panels, login pages, and other sensitive areas of web applications. The tool leverages asynchronous processing to check multiple paths concurrently, providing faster and more reliable results.
 
-## Features
+## Key Features
 
-- Scan websites for common admin panel paths.
-- Display results for found and missing admin panels.
-- Customizable input for website URLs.
-- Handles both sub-links and full admin panel URLs.
-- Shows the number of successful and failed attempts.
+- **Fast Scanning**: Asynchronous implementation for high-speed scanning
+- **Multiple Path Sources**: Uses both built-in paths and custom paths from JSON files
+- **Smart Detection**: Identifies admin panels with confidence-based scoring system
+- **Comprehensive Technology Detection**: Recognizes web technologies, frameworks, and security headers
+- **Flexible Output Options**: Generates both text and JSON reports
+- **Modern User Interface**: Rich terminal display with colors and progress indicators
+- **Customizable Options**: Set concurrency level, custom path lists, and more
 
 ---
 
@@ -18,121 +20,132 @@
 
 ### Prerequisites
 
-Ensure Python 3.7+ is installed on your system. Follow the specific installation steps for your operating system.
+- Python 3.7+
+- Required packages (specified in requirements.txt)
 
----
+### Installing on Linux/macOS
+
+```bash
+# Clone the repository
+git clone https://github.com/DV64/Find-The-Admin-Panel.git
+cd Find-The-Admin-Panel
+
+# Install dependencies
+pip3 install -r requirements.txt
+
+# Run the scanner
+python3 Find.py
+```
 
 ### Installing on Windows
 
-1. **Download Python**:  
-   - Download Python 3.7+ from [python.org](https://www.python.org/downloads/).  
-   - During installation, check the box **"Add Python to PATH"**.
+```bash
+# Clone the repository
+git clone https://github.com/DV64/Find-The-Admin-Panel.git
+cd Find-The-Admin-Panel
 
-2. **Clone the Repository**:  
-   Open the Command Prompt and run:
-   ```bash
-   git clone https://github.com/DV64/Find-The-Admin-Panel.git
-   cd Find-The-Admin-Panel
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-3. **Install Required Libraries**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the Tool**:  
-   ```bash
-   python Finder.py
-   ```
-
----
-
-### Installing on Linux
-
-1. **Install Python**:  
-   Most Linux distributions come with Python pre-installed. Verify using:
-   ```bash
-   python3 --version
-   ```
-   If Python is not installed, use the package manager to install it:
-   ```bash
-   sudo apt update
-   sudo apt install python3 python3-pip git
-   ```
-
-2. **Clone the Repository**:  
-   Open a terminal and run:
-   ```bash
-   git clone https://github.com/DV64/Find-The-Admin-Panel.git
-   cd Find-The-Admin-Panel
-   ```
-
-3. **Install Required Libraries**:
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-
-4. **Run the Tool**:
-   ```bash
-   python3 Finder.py
-   ```
-
----
-
-### Installing on Android (Using Termux)
-
-1. **Install Termux**:  
-   Download Termux from [F-Droid](https://f-droid.org/) or the Google Play Store.
-
-2. **Install Python**:  
-   Open Termux and run:
-   ```bash
-   pkg update
-   pkg install python git
-   ```
-
-3. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/DV64/Find-The-Admin-Panel.git
-   cd Find-The-Admin-Panel
-   ```
-
-4. **Install Required Libraries**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Run the Tool**:
-   ```bash
-   python Finder.py
-   ```
-
----
+# Run the scanner
+python Find.py
+```
 
 ## Usage
 
-1. Run the tool:
-   ```bash
-   python Finder.py
-   ```
+### Basic Usage
 
-2. Enter the base URL of the website when prompted (e.g., `example.com`).
-3. If sub-links are available, the script will automatically check them. If not, it will prompt you to add sub-links.
-4. The tool will scan the website for potential admin panel URLs.
-5. Results are displayed in the terminal, showing the status of each admin panel path.
+```bash
+python Find.py
+```
 
-At the end of the scan, a summary will show:
-- The total number of links scanned.
-- The number of successful admin panels found.
-- The number of failed attempts.
+This will start the scanner in interactive mode, prompting you for the target URL.
+
+### Command Line Options
+
+```bash
+python Find.py -u https://example.com
+```
+
+### Available Command Line Arguments
+
+- `-u, --url`: Target URL to scan
+- `-p, --pathfile`: Custom path file (JSON format)
+- `-o, --output`: Output file for results
+- `-j, --json`: Save results in JSON format
+- `-q, --quiet`: Quiet mode (less output)
+- `-c, --concurrency`: Number of concurrent requests (default: 25)
+- `-h, --help`: Show help information
+
+### Examples
+
+```bash
+# Basic scan with default settings
+python Find.py -u https://example.com
+
+# Use a custom path file and save results as JSON
+python Find.py -u https://example.com -p custom_paths.json -j
+
+# Run a quiet scan with 50 concurrent requests
+python Find.py -u https://example.com -q -c 50
+
+# Specify output file name
+python Find.py -u https://example.com -o my_scan_results
+```
+
+### Path Files
+
+The scanner supports two sources of paths to scan:
+1. **Built-in paths**: Default list of common admin paths
+2. **Custom paths**: Loaded from a JSON file
+
+To use custom paths, create a JSON file (e.g., `sub_links.json`) with an array of paths:
+
+```json
+[
+  "admin",
+  "administrator",
+  "login",
+  "wp-admin",
+  ...
+]
+```
+
+---
+
+## Understanding Results
+
+The scanner provides detailed information about each discovered page:
+
+- **URL**: Complete URL of the discovered page
+- **Status Code**: HTTP status code
+- **Response Time**: Time taken to receive the response
+- **Server**: Server technology (Apache, Nginx, etc.)
+- **Technologies**: Detected web technologies (WordPress, Laravel, etc.)
+- **Forms Found**: Number of HTML forms on the page
+- **Login Form**: Whether a login form was detected
+- **Confidence**: Probability that the page is an admin panel
 
 ---
 
 ## Contributing
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Commit your changes (`git commit -am 'Add feature'`).
-4. Push to the branch (`git push origin feature-branch`).
-5. Open a pull request.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## Disclaimer
+
+This tool is for educational and ethical security research purposes only. Always ensure you have explicit permission to scan any website or system. Unauthorized scanning may be illegal and unethical.
