@@ -2,129 +2,95 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.0] - 2025-03-20
+## [6.0] - 2023-06-01
 
 ### Added
-- Proxy and VPN support for anonymous scanning
-- Headless browser support for enhanced detection
-- CAPTCHA and protection system detection
-- Advanced technology fingerprinting
-- Three scanning modes: simple, aggressive, and stealth
+- Advanced Logging System with separate log files for errors, warnings, and usage
+- Ctrl+C handling to stop scans and display results (single press) or exit (double press)
+- Consolidated configuration system using only config.json as the source of truth
+- New user agents list in config.json with improved browser coverage
+- Automatic path validation and limiting based on configuration
+- System information logging for better diagnostics
+- Automatic log rotation and cleanup of logs older than 30 days
+- Usage statistics tracking (scan count, success rate, etc.)
+- Added more user-facing feature detection to filter out regular website pages
+- Enhanced distinction between user login pages and admin login pages
+- New admin-specific pattern recognition to reduce false positives
+
+### Changed
+- Enhanced signal handling for better user experience
+- Improved result summary display with confidence scores
+- Refactored code to remove redundancy and improve maintainability
+- All settings now load from config.json exclusively
+- Improved error handling and reporting
+- Code optimization for better performance
+- Adjusted scoring weights for login forms to prioritize admin-related forms
+- Enhanced penalty system for user-oriented pages
+
+### Fixed
+- Export errors when result objects miss expected keys
+- Path count issues when exceeding available paths
+- Confidence score calculation to properly handle percentage values
+- Various minor bugs and edge cases
+- Fixed issue with regular login pages being incorrectly identified as admin 
+panels
+- Optimized content analysis to better distinguish between admin and user areas
+- Addressed reliability issues in confidence scoring for multilingual websites
+
+## [5.0] - 2023-01-15
+
+### Added
+- Multi-language support with automatic language detection
+- Enhanced Arabic support with proper RTL handling
+- Advanced results analysis for better accuracy
+- Support for stealth mode to avoid detection
+
+### Changed
+- Improved scan engine with better performance
+- Enhanced user interface with rich formatting
+- Updated user agents for better compatibility
+
+## [4.0] - 2022-09-20
+
+### Added
+- Headless browser support for JavaScript-heavy sites
+- CAPTCHA detection and avoidance
+- Export results in multiple formats (JSON, CSV, HTML)
+- Advanced target information gathering
+
+### Fixed
+- SSL verification issues
+- Connection timeouts handling
+- Path traversal detection
+
+## [3.0] - 2022-05-10
+
+### Added
 - Multi-site scanning capabilities
-- HTML reports with interactive charts and graphs
-- Interactive terminal interface with Rich library
-- Real-time progress tracking with ETA
-- Detailed scan statistics and metrics
-- Confidence-based scoring system
-- Export in multiple formats (JSON, CSV, HTML, TXT)
-- Comprehensive help system with examples
-- Settings management system
-- Results viewer with filtering capabilities
+- Proxy support for anonymous scanning
+- Advanced detection modes
+- Custom user agent configuration
 
 ### Changed
-- Enhanced terminal interface with Rich
-- Improved progress tracking with detailed statistics
-- More accurate confidence scoring for results
-- Better handling of network errors and retries
-- Support for custom HTTP headers and cookies
-- Improved error handling and logging
-- Better memory management
-- Enhanced proxy rotation system
-- Improved technology detection
+- Improved console output with colored formatting
+- Enhanced scan algorithms for better accuracy
 
-### Security & Performance
-- Optimized asynchronous processing for faster scans
-- Better memory management for large target lists
-- Improved SSL/TLS handling with security best practices
-- Detailed logging for later analysis
-- Enhanced security headers detection
-- Better CAPTCHA detection algorithms
-- Improved form analysis
-
-## [4.0] - 2025-02-24
+## [2.0] - 2022-01-25
 
 ### Added
-- Completely redesigned scanner with modular architecture
-- Comprehensive technology detection capabilities
-- Advanced form and input field analysis
-- Detailed confidence scoring for each potential admin panel
-- Multiple export formats (TXT, JSON, CSV)
-- Command-line interface with extensive options
-- Progress tracking with rich terminal interface
+- Concurrent scanning for faster results
+- Result caching to avoid duplicate requests
+- Basic HTML report generation
+- Command line interface improvements
 
-### Changed
-- Migrated to fully asynchronous request handling
-- Enhanced terminal output with better visuals
-- Improved error handling and logging
-- More sophisticated analysis of responses
+### Fixed
+- Path handling for different server types
+- Result filtering for better accuracy
 
-### Security & Performance
-- Better handling of network errors and timeouts
-- Support for configurable request parameters
-- Detailed logging system for debugging
-
-## [3.0] - 2024-12-21
+## [1.0] - 2021-11-05
 
 ### Added
-- Complete rewrite with asynchronous processing
-- Enhanced terminal display with Rich library
-- Dynamic progress tracking during scans
-- Detailed analysis of responses with BeautifulSoup
-- Technology detection capabilities
-- Confidence scoring for results
-- Cache support for faster rescanning
-- Comprehensive logging system
-- Support for custom User-Agents
-
-### Changed
-- Migrated from simple requests to aiohttp
-- Improved error handling and retry logic
-- Enhanced terminal output with tables and panels
-- Better handling of redirects and status codes
-
-### Security & Performance
-- SSL verification options
-- Custom timeout handling
-- Connection pooling for better performance
-- Random User-Agent rotation
-
-## [2.0] - 2024-11-25
-
-### Added
-- Multi-threaded scanning with ThreadPoolExecutor
-- Colorful terminal output with Colorama
-- Enhanced UI with better progress reporting
-- Support for custom timeout and thread count
-- Basic detection of admin panels with improved accuracy
-- Ability to save scan results to a file
-
-### Changed
-- Migrated from Python 2 to Python 3
-- Improved URL handling and validation
-- Better handling of HTTP errors and timeouts
-- More user-friendly interface with clear instructions
-
-### Security & Performance
-- Added timeout for requests to avoid hanging
-- Better error handling for connectivity issues
-- Support for HTTPS URLs
-
-## [1.1] - 2022-09-06
-
-### Added
-- ASCII art banner for better visual appeal
-- Improved user interface with clearer instructions
-- Better handling of HTTP responses
-
-### Changed
-- Cleaner code organization
-- Improved error handling for HTTP requests
-
-## [1.0] - 2019-09-3
-
-### Initial Release
-- Basic functionality to find admin panels
-- Simple command-line interface
-- Ability to read paths from a file
-- Basic error handling for HTTP requests
-- Support for HTTP only (no HTTPS)
+- Initial release with basic scanning functionality
+- Common admin panel paths detection
+- Simple console output
+- Basic configuration options
