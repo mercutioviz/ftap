@@ -1,53 +1,40 @@
-"""
-Result exporter module for Find The Admin Panel
-
-This module handles the exporting of scan results to various formats
-including JSON, HTML, CSV, and TXT. It provides a centralized interface
-for saving and viewing scan results.
-"""
-
 import os
 import json
 import csv
 import html
 from datetime import datetime
 from typing import List, Dict
+from urllib.parse import urlparse
 
-# Import advanced logging tool
 from scripts.logging import get_logger
 
-# Initialize advanced logger
 adv_logger = get_logger('logs')
 
 class ResultExporter:
-    """Exports scan results in various formats"""
     
     def __init__(self, config):
         self.config = config
         self.results_dir = config.RESULTS_DIR
         self.supported_formats = ["json", "html", "csv", "txt"]
-        # Ensure default export formats exist
         if not hasattr(config, 'EXPORT_FORMATS') or not config.EXPORT_FORMATS:
             self.config.EXPORT_FORMATS = ["json", "html"]
             adv_logger.log_info("No export formats configured, using defaults: json, html")
+            
+        os.makedirs(self.results_dir, exist_ok=True)
+        adv_logger.log_info(f"Ensuring results directory exists: {self.results_dir}")
     
     def _get_timestamp(self) -> str:
-        """Get current timestamp for filenames"""
         return datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    def _get_result_filename(self, base_filename: str = None, format_type: str = "json") -> str:
-        """Generate a filename for results"""
+    def _get_result_filename(self, base_filename: str = "", format_type: str = "json") -> str:
         timestamp = self._get_timestamp()
         if base_filename:
-            # Clean up any path separators to avoid directory traversal
             safe_basename = os.path.basename(base_filename)
             return f"{self.results_dir}/{safe_basename}_{timestamp}.{format_type}"
         else:
             return f"{self.results_dir}/results_{timestamp}.{format_type}"
     
     def _ensure_result_has_required_fields(self, result: Dict) -> Dict:
-        """Ensure result has all required fields to prevent export errors"""
-        # Standard fields that should be present in all results
         required_fields = {
             "url": "Unknown",
             "status_code": 0,
@@ -63,14 +50,11 @@ class ResultExporter:
             "content_length": 0
         }
         
-        # Create a copy to avoid modifying the original
         safe_result = result.copy()
         
-        # Extract server from headers if present
         if "headers" in safe_result and "Server" in safe_result["headers"]:
             safe_result["server"] = safe_result["headers"]["Server"]
         
-        # Add any missing fields
         for field, default_value in required_fields.items():
             if field not in safe_result or safe_result[field] is None:
                 safe_result[field] = default_value
@@ -78,12 +62,9 @@ class ResultExporter:
         return safe_result
     
     def _export_json(self, results: List[Dict], scan_info: Dict, filename: str) -> bool:
-        """Export results to JSON format"""
         try:
-            # Ensure all results have required fields
             safe_results = [self._ensure_result_has_required_fields(r) for r in results]
             
-            # Create full export data with scan info and results
             export_data = {
                 "scan_info": scan_info,
                 "results": safe_results,
@@ -101,19 +82,15 @@ class ResultExporter:
             return False
     
     def _export_html(self, results: List[Dict], scan_info: Dict, filename: str) -> bool:
-        """Export results to HTML format"""
         try:
-            # Ensure all results have required fields
             safe_results = [self._ensure_result_has_required_fields(r) for r in results]
             
-            # Get scan info with safe defaults
             url = scan_info.get("target_url", "Unknown")
             mode = scan_info.get("scan_mode", "Unknown")
             duration = scan_info.get("scan_time", 0)
             total_paths = scan_info.get("total_paths", 0)
             found_count = sum(1 for r in safe_results if r.get("found", False))
             
-            # Create HTML content
             html_content = f"""
             <!DOCTYPE html>
             <html lang="en">
@@ -181,7 +158,6 @@ class ResultExporter:
                         <tbody>
                 """
                 
-                # Add rows for each result
                 for result in safe_results:
                     confidence = result.get("confidence", 0) * 100
                     confidence_class = "success" if confidence > 70 else "warning" if confidence > 40 else "error"
@@ -214,7 +190,6 @@ class ResultExporter:
                     </table>
                 """
             
-            # Close tags
             html_content += """
                 </div>
                 <script>
@@ -226,7 +201,6 @@ class ResultExporter:
             </html>
             """
             
-            # Write to file
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write(html_content)
                 
@@ -238,21 +212,17 @@ class ResultExporter:
             return False
     
     def _export_csv(self, results: List[Dict], scan_info: Dict, filename: str) -> bool:
-        """Export results to CSV format"""
         try:
-            # Ensure all results have required fields
             safe_results = [self._ensure_result_has_required_fields(r) for r in results]
             
             with open(filename, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 
-                # Write header
                 writer.writerow([
                     "URL", "Status", "Title", "Confidence", "Has Login Form", 
                     "Technologies", "Server", "Content Length", "Form Count"
                 ])
                 
-                # Write data
                 for result in safe_results:
                     writer.writerow([
                         result.get("url", "Unknown"),
@@ -274,16 +244,13 @@ class ResultExporter:
             return False
     
     def _export_txt(self, results: List[Dict], scan_info: Dict, filename: str) -> bool:
-        """Export results to plain text format"""
         try:
-            # Ensure all results have required fields
             safe_results = [self._ensure_result_has_required_fields(r) for r in results]
             
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write("===== Admin Panel Finder Results =====\n")
                 f.write(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
                 
-                # Write scan info
                 f.write(f"Target URL: {scan_info.get('target_url', 'Unknown')}\n")
                 f.write(f"Scan Mode: {scan_info.get('scan_mode', 'Unknown')}\n")
                 f.write(f"Total Paths Checked: {scan_info.get('total_paths', 0)}\n")
@@ -291,7 +258,6 @@ class ResultExporter:
                 
                 f.write(f"Found {len(safe_results)} potential admin panels\n\n")
                 
-                # Write results
                 for i, result in enumerate(safe_results, 1):
                     confidence = result.get("confidence", 0) * 100
                     f.write(f"[{i}] {result.get('url', 'Unknown')}\n")
@@ -300,10 +266,8 @@ class ResultExporter:
                     f.write(f"    Confidence: {confidence:.1f}%\n")
                     f.write(f"    Server: {result.get('server', 'Unknown')}\n")
                     
-                    # Add login form info
                     f.write(f"    Has Login Form: {'Yes' if result.get('has_login_form', False) else 'No'}\n")
                     
-                    # Add technologies info
                     if result.get("technologies", []):
                         f.write(f"    Technologies: {', '.join(result.get('technologies', []))}\n")
                     
@@ -316,80 +280,66 @@ class ResultExporter:
             adv_logger.log_error(f"Failed to export to TXT: {str(e)}")
             return False
     
-    def export_results(self, results: List[Dict], scan_info: Dict, format_type: str = None, base_filename: str = None) -> Dict[str, bool]:
-        """Export results to the specified format
-        
-        Args:
-            results: List of result objects
-            scan_info: Information about the scan
-            format_type: Format type to export (json, html, csv, txt). If None, will use config.EXPORT_FORMATS
-            base_filename: Base name for the result file
-            
-        Returns:
-            Dictionary with format types as keys and success status as values
-        """
-        if not results:
+    def export_results(self, results: List[Dict], scan_info: Dict, format_type: str = "", base_filename: str = "") -> Dict[str, bool]:
+        if not results or not isinstance(results, list):
+            adv_logger.log_warning("No results to export")
             return {}
-        
-        # Create results directory if it doesn't exist
+            
         os.makedirs(self.results_dir, exist_ok=True)
         
-        # Determine which formats to use
-        export_formats = []
+        found_results = [r for r in results if isinstance(r, dict) and r.get("found", False)]
         
-        # If a specific format is specified, use that
-        if format_type:
-            if format_type in self.supported_formats:
-                export_formats = [format_type]
-            else:
-                export_formats = self.config.EXPORT_FORMATS
-        # Otherwise use all formats from config
+        if not found_results:
+            adv_logger.log_info("No positive results to export")
+            
+        if not format_type:
+            format_type = self.config.EXPORT_FORMATS[0] if self.config.EXPORT_FORMATS else "json"
+            
+        formats_to_export = []
+        if format_type.lower() == "all":
+            formats_to_export = self.supported_formats
         else:
-            export_formats = self.config.EXPORT_FORMATS
-        
-        # Filter to supported formats only
-        export_formats = [fmt for fmt in export_formats if fmt in self.supported_formats]
-        
-        if not export_formats:
-            adv_logger.log_warning("No valid export formats available. Using default: json")
-            export_formats = ["json"]
-        
+            formats_to_export = [format_type.lower()]
+            
         export_status = {}
-        exported_files = []
         
-        # Export to each format
-        for fmt in export_formats:
+        base_target_url = scan_info.get("target_url", "")
+        if base_target_url:
+            parsed = urlparse(base_target_url)
+            base_domain = parsed.netloc
+            timestamp = self._get_timestamp()
+            base_filename = f"{base_domain}_{timestamp}" if base_domain else f"scan_{timestamp}"
+        
+        for fmt in formats_to_export:
+            if fmt not in self.supported_formats:
+                adv_logger.log_warning(f"Unsupported export format: {fmt}")
+                export_status[fmt] = False
+                continue
+                
             filename = self._get_result_filename(base_filename, fmt)
             
             if fmt == "json":
-                success = self._export_json(results, scan_info, filename)
+                export_status[fmt] = self._export_json(results, scan_info, filename)
             elif fmt == "html":
-                success = self._export_html(results, scan_info, filename)
+                export_status[fmt] = self._export_html(results, scan_info, filename)
             elif fmt == "csv":
-                success = self._export_csv(results, scan_info, filename)
+                export_status[fmt] = self._export_csv(results, scan_info, filename)
             elif fmt == "txt":
-                success = self._export_txt(results, scan_info, filename)
+                export_status[fmt] = self._export_txt(results, scan_info, filename)
             else:
-                success = False
+                adv_logger.log_warning(f"Format {fmt} recognized but no export function available")
+                export_status[fmt] = False
                 
-            export_status[fmt] = success
-            
-            if success:
-                exported_files.append(filename)
-            
-        # Log export activity
-        if exported_files:
-            adv_logger.log_results_exported(export_formats, len(results))
-            
+        successful_formats = [f for f, status in export_status.items() if status]
+        adv_logger.log_results_exported(successful_formats, len(found_results))
+        
         return export_status
     
     def list_result_files(self) -> List[str]:
-        """List all result files in the results directory"""
         try:
             if not os.path.exists(self.results_dir):
                 return []
                 
-            # Get all result files
             result_files = []
             for filename in os.listdir(self.results_dir):
                 if filename.endswith((".json", ".html", ".csv", ".txt")):
@@ -402,14 +352,7 @@ class ResultExporter:
             return []
     
     def view_result_file(self, filename: str) -> str:
-        """Get the contents of a result file
-        
-        Args:
-            filename: Name of the file to view
-            
-        Returns:
-            Contents of the file as a string, or empty string if error
-        """
+
         try:
             filepath = os.path.join(self.results_dir, filename)
             
