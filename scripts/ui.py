@@ -1,10 +1,3 @@
-"""
-Terminal display module for Find The Admin Panel
-
-This module handles the user interface components for displaying information
-in the terminal, including results, banners, and interactive elements.
-"""
-
 import os
 import platform
 import re
@@ -23,9 +16,7 @@ from rich.style import Style
 from rich.prompt import Prompt
 from rich.columns import Columns
 
-# Class for handling terminal display
 class TerminalDisplay:
-    """Terminal-based user interface for the admin panel finder"""
     
     def __init__(self):
         self.console = Console()
@@ -33,15 +24,12 @@ class TerminalDisplay:
         self.title_style = Style(color="blue", bold=True)
         
     def clear_screen(self):
-        """Clear the terminal screen"""
         if platform.system().lower() == "windows":
             os.system("cls")
         else:
             os.system("clear")
     
     def show_banner(self, config):
-        """Display the application banner with version information"""
-        # Create a more modern banner with simplified styling - only light blue
         banner = Text()
         banner.append("  ███████╗██╗███╗   ██╗██████╗ ███████╗██████╗ \n", style="bold cyan")
         banner.append("  ██╔════╝██║████╗  ██║██╔══██╗██╔════╝██╔══██╗\n", style="bold cyan")
@@ -50,12 +38,10 @@ class TerminalDisplay:
         banner.append("  ██║     ██║██║ ╚████║██████╔╝███████╗██║  ██║\n", style="bold cyan")
         banner.append("  ╚═╝     ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝\n", style="bold cyan")
         
-        # Add tagline and version info - with better alignment
         banner.append("\n")
         banner.append("  FIND THE ADMIN PANEL - WEB SECURITY TOOL\n", style="bold white")
         banner.append("\n")
         
-        # اصلاح سطر المعلومات بدون استخدام علامات التنسيق
         version_info = Text("  Version: ", style="white")
         version_info.append(config.VERSION, style="bold cyan")
         version_info.append("   Developer: ", style="white")
@@ -66,7 +52,6 @@ class TerminalDisplay:
         
         banner.append(version_info)
         
-        # Create a single panel with all information
         self.console.print(Panel(
             banner,
             box=box.HEAVY,
@@ -76,8 +61,7 @@ class TerminalDisplay:
             title_align="center"
         ))
     
-    def show_target_info(self, url: str, scan_mode: str = "standard", wordlist_path: str = None, proxies_enabled: bool = False, headless_enabled: bool = False):
-        """Display information about the target being scanned"""
+    def show_target_info(self, url: str, scan_mode: str = "standard", wordlist_path: str = "", proxies_enabled: bool = False, headless_enabled: bool = False):
         panel = Panel(
             f"[bold white]Target:[/bold white] [cyan]{url}[/cyan]\n"
             f"[bold white]Mode:[/bold white] [cyan]{scan_mode}[/cyan]" + 
@@ -89,7 +73,6 @@ class TerminalDisplay:
         self.console.print(panel)
     
     def show_results(self, results):
-        """Display scan results in a formatted table"""
         if not results:
             self.console.print(Panel("[italic]No results to display.[/italic]", border_style="yellow", box=box.ROUNDED))
             return
@@ -99,7 +82,6 @@ class TerminalDisplay:
         table.add_column("Status", style="green", justify="center")
         table.add_column("Confidence", style="magenta", justify="center")
         
-        # Sort results by confidence for better display
         sorted_results = sorted(results, key=lambda x: x.get('confidence', 0), reverse=True)
         
         for result in sorted_results:
@@ -107,7 +89,6 @@ class TerminalDisplay:
             status = str(result.get("status_code", "Unknown"))
             confidence = f"{result.get('confidence', 0) * 100:.1f}%"
             
-            # Style row based on confidence level
             url_style = "cyan"
             if result.get('confidence', 0) > 0.5:
                 url_style = "bold cyan"
@@ -119,10 +100,8 @@ class TerminalDisplay:
         self.console.print(Panel(table, border_style="cyan", box=box.ROUNDED))
     
     def show_summary(self, total_scanned: int, valid_found: int, scan_time: float, technologies=None):
-        """Display a summary of the scan results"""
         success_rate = (valid_found / total_scanned * 100) if total_scanned > 0 else 0
         
-        # Create a more visually appealing summary panel
         panel = Panel(
             f"[bold white]Total Scanned:[/bold white] [cyan]{total_scanned}[/cyan]\n"
             f"[bold white]Found:[/bold white] [green]{valid_found}[/green]\n"
@@ -133,7 +112,6 @@ class TerminalDisplay:
             box=box.HEAVY
         )
         
-        # Show technologies in a separate panel if available
         if technologies and len(technologies) > 0:
             tech_table = Table(show_header=True, header_style="bold magenta", box=box.SIMPLE)
             tech_table.add_column("Technology", style="cyan")
@@ -149,7 +127,6 @@ class TerminalDisplay:
                 box=box.ROUNDED
             )
             
-            # Display both panels in columns
             layout = Layout()
             layout.split_row(
                 Layout(panel),
@@ -160,7 +137,6 @@ class TerminalDisplay:
             self.console.print(panel)
 
     def show_scan_completion(self, results=None, scan_time: float = 0.0, total_paths: int = 0):
-        """Display scan completion information"""
         found_count = 0
         if results:
             found_count = sum(1 for r in results if r.get("found", False))
@@ -176,7 +152,6 @@ class TerminalDisplay:
         self.console.print(panel)
     
     def show_results_list(self, files):
-        """Display a list of result files"""
         table = Table(title="Available Results", box=box.DOUBLE, header_style="bold green", border_style="cyan")
         table.add_column("#", style="dim", width=4)
         table.add_column("Filename", style="green")
@@ -185,12 +160,10 @@ class TerminalDisplay:
         
         for i, file in enumerate(files, 1):
             if file.endswith(('.json', '.html', '.txt', '.csv')):
-                # Extract date and type from filename
                 file_type = file.split('.')[-1].upper()
                 date_match = re.search(r'(\d{8}_\d{6})', file)
                 date = date_match.group(1) if date_match else "Unknown"
                 
-                # Format date for display if found
                 if date != "Unknown":
                     try:
                         date_obj = datetime.strptime(date, "%Y%m%d_%H%M%S")
@@ -203,7 +176,6 @@ class TerminalDisplay:
         self.console.print(Panel(table, border_style="green", box=box.ROUNDED))
     
     def show_help(self):
-        """Display help information with improved formatting"""
         help_layout = Layout()
         
         overview = Panel(
@@ -262,7 +234,6 @@ class TerminalDisplay:
             box=box.ROUNDED
         )
         
-        # Arrange all panels in a layout
         help_layout.split_column(
             Layout(overview, size=5),
             Layout(features_panel, size=10),
@@ -273,7 +244,6 @@ class TerminalDisplay:
         self.console.print(help_layout)
         
     def show_progress(self, message, completed=None, total=None):
-        """Show enhanced progress information with spinners and bars"""
         if completed is not None and total is not None:
             with Progress(
                 SpinnerColumn(),
@@ -284,22 +254,24 @@ class TerminalDisplay:
                 expand=True
             ) as progress:
                 task = progress.add_task(message, total=total, completed=completed)
-                progress.update(task, advance=0)  # Just to show it
+                progress.update(task, advance=0)
         else:
             self.console.print(f"[bold blue]➤[/bold blue] [cyan]{message}[/cyan]")
         
     def show_error(self, message):
-        """Display an error message"""
         self.console.print(Panel(f"[bold red]✘ {message}[/bold red]", border_style="red", box=box.ROUNDED))
         
     def show_warning(self, message):
-        """Display a warning message"""
         self.console.print(Panel(f"[bold yellow]⚠ {message}[/bold yellow]", border_style="yellow", box=box.ROUNDED))
         
     def show_success(self, message):
-        """Display a success message"""
         self.console.print(Panel(f"[bold green]✓ {message}[/bold green]", border_style="green", box=box.ROUNDED))
-        
+    
+    def show_info(self, message):
+        self.console.print(f"[bold blue]ℹ {message}[/bold blue]")
+    
     def get_input(self, prompt):
-        """Get input from the user with a formatted prompt"""
         return self.console.input(f"[bold cyan]➤[/bold cyan] [cyan]{prompt}[/cyan] ")
+
+
+display = TerminalDisplay()
