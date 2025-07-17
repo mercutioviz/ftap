@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.1] - 2025-07-17
+
+### Added
+- Support for HTTP/3 protocol detection and optimization  
+- Machine learning-based admin panel classification for more accurate detection  
+- Auto-update system for wordlists and configuration files  
+- Multi-language support for UI and logging  
+- Integration with web vulnerability scanners  
+- Enhanced performance metrics and benchmarking  
+- More robust caching system with disk persistence  
+- Path fuzzing capabilities for more thorough discovery  
+- Enhanced UI with more detailed scan information  
+- Real-time status tracking showing found, verified, and rejected results  
+- Proper support for different scan modes in command line arguments  
+- Verification step for discovered admin panels to reduce false positives  
+- Mode-specific path optimization and selection  
+
+### Changed
+- Improved scanning algorithm for better detection rate  
+- More efficient error handling and retry mechanisms  
+- Enhanced concurrent scanning with better resource management  
+- Updated user agents list with latest browser versions  
+- Refined detection logic to reduce false positives  
+- Better management of scan interruptions  
+- Modernized terminal UI with more interactive elements  
+- Improved confidence calculation to better detect genuine admin panels  
+- Reduced false positives by implementing multi-level verification  
+- Optimized scanner to handle rate limiting from target websites  
+- Updated default configuration settings for each scan mode  
+- Improved session management and connection handling  
+
+### Fixed
+- Issue with improper URL parsing in some edge cases  
+- Memory leak during extended scanning sessions  
+- Path validation bugs when using custom wordlists  
+- Scanner getting stuck on unresponsive hosts  
+- HTTP/2 connection handling errors  
+- Timeout handling for slow responding servers  
+- Results export formatting issues  
+- Concurrency control in high-latency environments  
+- Logs and results not being saved correctly by ensuring directories exist  
+- False positives in admin panel detection with improved 404 page detection  
+- Scan modes behaving similarly; now each has unique behavior  
+- Error page detection even when status code is 200  
+- Path selection based on scan mode (simple, stealth, aggressive)  
+- Verification mechanism to better handle false positives  
+- Compatibility with sites using Cloudflare protection  
+- Multiple JSON parsing issues with different wordlist formats  
+
 ## [6.0] - 2025-05-13
 
 ### Added
