@@ -1,10 +1,3 @@
-"""
-Menu module for Find The Admin Panel
-
-This module handles the interactive menu system for the application,
-allowing users to navigate through various options and perform actions.
-"""
-
 import os
 import sys
 import re
@@ -12,8 +5,6 @@ import time
 import asyncio
 import json
 from typing import List, Dict, Any, Optional, Union, Callable
-
-# Import advanced logging and display tools
 from scripts.logging import get_logger
 from scripts.ui import TerminalDisplay
 from scripts.config import Config
@@ -23,12 +14,10 @@ from rich.panel import Panel
 from rich.table import Table
 from rich import box
 
-# Initialize advanced logger and display
 adv_logger = get_logger('logs')
 display = TerminalDisplay()
 
 class Menu:
-    """Main menu system for the application"""
     
     def __init__(self, config: Config):
         self.config = config
@@ -38,22 +27,17 @@ class Menu:
         self.current_menu = "main"
         self.last_scan_results = []
         self.last_scan_info = {}
-        # Get base directory for absolute paths
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
     async def start(self):
-        """Start the menu system"""
         try:
             adv_logger.log_info("Starting menu system")
             
-            # Display welcome banner
             display.clear_screen()
             display.show_banner(self.config)
             
-            # Initialize scanner
             self.scanner = await Scanner.create(self.config)
             
-            # Main menu loop
             while self.running:
                 if self.current_menu == "main":
                     await self._show_main_menu()
@@ -80,11 +64,9 @@ class Menu:
                 await self.scanner.close()
     
     async def _show_main_menu(self):
-        """Display main menu and handle user input"""
         display.clear_screen()
         display.show_banner(self.config)
         
-        # Use Rich panel with cyan border instead of blue
         display.console.print(Panel(
             "Select an option to proceed",
             title="[bold]MAIN MENU[/bold]",
@@ -92,7 +74,6 @@ class Menu:
             title_align="center"
         ))
         
-        # Use Rich formatting for menu options with cyan styling
         options = [
             ("[bold cyan][[bold white]1[/bold white]][/bold cyan] [bold cyan]Start Scan[/bold cyan]", "Find admin panels on a website"),
             ("[bold cyan][[bold white]2[/bold white]][/bold cyan] [bold cyan]View Results[/bold cyan]", "Browse previous scan results"),
@@ -101,7 +82,6 @@ class Menu:
             ("[bold cyan][[bold white]0[/bold white]][/bold cyan] [bold cyan]Exit[/bold cyan]", "Close the application")
         ]
         
-        # Create a table for better-looking options
         options_table = Table(show_header=False, box=None, padding=(0, 2, 0, 0))
         options_table.add_column("Option", style="bold cyan")
         options_table.add_column("Description", style="dim")
@@ -125,11 +105,9 @@ class Menu:
             self.current_menu = "exit"
     
     async def _show_scan_menu(self):
-        """Show the scan menu with enhanced options"""
         display.clear_screen()
         display.show_banner(self.config)
         
-        # Use Rich panel instead of text separators
         display.console.print(Panel(
             "Configure and run scans for admin panels",
             title="[bold]SCAN MENU[/bold]",
@@ -137,7 +115,6 @@ class Menu:
             title_align="center"
         ))
         
-        # Use Rich formatting for menu options
         options = [
             ("[bold cyan][[bold white]1[/bold white]][/bold cyan] [bold cyan]Start New Scan[/bold cyan]", "Begin scanning a new target"),
             ("[bold cyan][[bold white]2[/bold white]][/bold cyan] [bold cyan]Configure Scan Options[/bold cyan]", "Set scan parameters"),
@@ -147,7 +124,6 @@ class Menu:
             ("[bold cyan][[bold white]0[/bold white]][/bold cyan] [bold cyan]Exit[/bold cyan]", "Close the application")
         ]
         
-        # Create a table for better-looking options
         options_table = Table(show_header=False, box=None, padding=(0, 2, 0, 0))
         options_table.add_column("Option", style="bold cyan")
         options_table.add_column("Description", style="dim")
@@ -160,11 +136,9 @@ class Menu:
         option = display.get_input("Select an option: ")
         
         if option == "1":
-            # Start new scan
             display.clear_screen()
             display.show_banner(self.config)
             
-            # Use Rich panel for the scan title
             display.console.print(Panel(
                 "Configure target and scan parameters",
                 title="[bold]NEW SCAN[/bold]",
@@ -179,7 +153,6 @@ class Menu:
                 await self._show_scan_menu()
                 return
             
-            # Validate URL
             is_valid, target_url = self._validate_url(target_url)
             if not is_valid:
                 display.show_error(f"Invalid URL format: {target_url}")
@@ -187,29 +160,26 @@ class Menu:
                 await self._show_scan_menu()
                 return
             
-            # Scan configuration
             display.console.print("\n[bold]Scan Configuration:[/bold]")
             
-            # Choose scan mode with clear descriptions in a nice table
             scan_modes_table = Table(show_header=False, box=box.SIMPLE, title="[bold]Scan Modes[/bold]", title_style="bold cyan", border_style="cyan")
             scan_modes_table.add_column("Mode", style="bold cyan", width=12)
             scan_modes_table.add_column("Description", style="white")
             
-            scan_modes_table.add_row("[bold green]quick[/bold green]", "Fast scan with common paths")
+            scan_modes_table.add_row("[bold green]simple[/bold green]", "Fast scan with common paths")
             scan_modes_table.add_row("[bold yellow]stealth[/bold yellow]", "Slower scan with delays to avoid detection")
             scan_modes_table.add_row("[bold red]aggressive[/bold red]", "Comprehensive scan with all available techniques")
             
             display.console.print(scan_modes_table)
             
-            scan_mode = display.get_input("\nSelect scan mode [quick/stealth/aggressive] (default: quick): ").lower()
+            scan_mode = display.get_input("\nSelect scan mode [simple/stealth/aggressive] (default: simple): ").lower()
             if not scan_mode or scan_mode.strip() == "":
-                scan_mode = "quick"
+                scan_mode = "simple"
                 display.show_warning(f"Using default mode: {scan_mode}")
-            elif scan_mode not in ["quick", "stealth", "aggressive"]:
-                display.show_warning(f"Invalid mode '{scan_mode}', using default mode: quick")
-                scan_mode = "quick"
+            elif scan_mode not in ["simple", "stealth", "aggressive"]:
+                display.show_warning(f"Invalid mode '{scan_mode}', using default mode: simple")
+                scan_mode = "simple"
             
-            # Choose wordlist with absolute path handling
             default_wordlist = os.path.join(self.base_dir, self.config.DEFAULT_WORDLIST)
             
             print(f"\nDefault wordlist: {default_wordlist}")
@@ -223,7 +193,6 @@ class Menu:
                     wordlist_path = default_wordlist
                     display.show_warning(f"Using default wordlist: {wordlist_path}")
             
-            # Confirmation
             scan_details = f"""[bold white]Target URL:[/bold white] [cyan]{target_url}[/cyan]
 [bold white]Scan Mode:[/bold white] [cyan]{scan_mode}[/cyan]
 [bold white]Wordlist:[/bold white] [cyan]{os.path.basename(wordlist_path)}[/cyan]"""
@@ -235,17 +204,13 @@ class Menu:
                 box=box.ROUNDED
             ))
             
-            # Now we explicitly call scan_target with a single mode, not performing additional scans
             confirm = display.get_input("\nStart scan? [Y/n]  (default: Y): ").lower() != "n"
             if confirm:
                 display.show_progress(f"Starting {scan_mode} scan for {target_url}")
                 
-                # Execute the scan with the selected options (we only use exactly what was selected)
                 try:
-                    # Reading paths from the wordlist file
                     paths = []
                     if wordlist_path.endswith('.json'):
-                        # If the file is in JSON format
                         try:
                             with open(wordlist_path, 'r', encoding='utf-8') as f:
                                 paths_data = json.load(f)
@@ -260,7 +225,6 @@ class Menu:
                             display.show_error(f"Error reading JSON file: {str(e)}")
                             paths = []
                     else:
-                        # If the file is a plain text file
                         try:
                             with open(wordlist_path, 'r', encoding='utf-8', errors='ignore') as f:
                                 paths = [line.strip() for line in f if line.strip() and not line.startswith('#')]
@@ -273,25 +237,37 @@ class Menu:
                         display.get_input("Press Enter to continue...")
                         return
 
-                    # Set scan mode in configuration
                     self.config.DETECTION_MODE = scan_mode
+                    self.config._setup_detection_modes()
                     
-                    # Call scan function with the paths read
+                    mode_config = self.config.get_current_mode_config()
+                    mode_description = mode_config.get("DESCRIPTION", "")
+                    concurrency = mode_config.get("MAX_CONCURRENT_TASKS", self.config.MAX_CONCURRENT_TASKS)
+                    
+                    display.console.print(f"\n[bold cyan]Mode Details:[/bold cyan] {mode_description}")
+                    display.console.print(f"[bold cyan]Concurrency:[/bold cyan] {concurrency} tasks")
+                    display.console.print(f"[bold cyan]Confidence Threshold:[/bold cyan] {mode_config.get('CONFIDENCE_THRESHOLD', 0.6)}")
+                    
                     total_paths = len(paths)
                     display.show_progress(f"Scanning {total_paths} paths for {target_url}")
                     
-                    # Call the scan function with correct parameter order
                     try:
-                        # Call scan function
-                        results = await self.scanner.scan(target_url, paths, self.config.MAX_CONCURRENT_TASKS)
+                        if self.scanner:
+                            results = await self.scanner.scan(target_url, paths, self.config.MAX_CONCURRENT_TASKS)
+                        else:
+                            display.show_error("Scanner not initialized")
+                            display.get_input("\nPress Enter to return to main menu...")
+                            return
                         
                         if not results and not isinstance(results, list):
                             display.show_warning("No results obtained from scan operation")
                             display.get_input("\nPress Enter to return to main menu...")
                             return
                         
-                        # Get scan information
-                        scan_info = self.scanner.get_scan_info()
+                        scan_info = {}
+                        if self.scanner:
+                            scan_info = self.scanner.get_scan_info() or {}
+                            
                         if not scan_info:
                             scan_info = {
                                 "duration": 0,
@@ -301,11 +277,9 @@ class Menu:
                                 "found_count": 0
                             }
                         
-                        # Store results for later display
                         self.last_scan_results = results
                         self.last_scan_info = scan_info
                         
-                        # Display results
                         scan_time = scan_info.get("duration", 0)
                         found_count = sum(1 for r in results if r.get("found", False))
                         
@@ -313,7 +287,6 @@ class Menu:
                         display.show_results(results)
                         display.show_summary(total_paths, found_count, scan_time)
                         
-                        # Export results if configured
                         if self.config.SAVE_RESULTS and results:
                             display.show_progress("Exporting results...")
                             export_status = self.exporter.export_results(results, scan_info)
@@ -330,22 +303,21 @@ class Menu:
             
             await self._show_scan_menu()
         elif option == "2":
-            # Configure options
-            await self._configure_scan_options()
+            await self._show_settings_menu()
             await self._show_scan_menu()
         elif option == "3":
-            # View results
             await self._show_results_menu()
             await self._show_scan_menu()
         elif option == "4":
-            # Import target list
-            await self._import_target_list()
+            if hasattr(self, "_show_import_target_dialog"):
+                self._show_import_target_dialog()
+            else:
+                display.show_error("Import target functionality is not implemented")
+                display.get_input("Press Enter to continue...")
             await self._show_scan_menu()
         elif option == "5":
-            # Return to main menu
             await self._show_main_menu()
         elif option == "0":
-            # Exit
             self._exit_program()
         else:
             display.show_error("Invalid option")
@@ -353,7 +325,6 @@ class Menu:
             await self._show_scan_menu()
     
     async def _show_results_menu(self):
-        """Display results menu and handle user input"""
         display.clear_screen()
         display.show_banner(self.config)
         
@@ -377,24 +348,21 @@ class Menu:
                 if 0 <= idx < len(result_files):
                     filename = result_files[idx]
                     
-                    # Determine how to display the file based on extension
                     if filename.endswith(".html"):
                         display.show_success(f"Opening {filename} in web browser...")
-                        # Open HTML file in default browser
                         try:
                             filepath = os.path.join(self.config.RESULTS_DIR, filename)
                             filepath = os.path.abspath(filepath)
                             
                             if sys.platform == 'win32':
                                 os.startfile(filepath)
-                            elif sys.platform == 'darwin':  # macOS
+                            elif sys.platform == 'darwin':  
                                 os.system(f'open "{filepath}"')
-                            else:  # linux variants
+                            else:  
                                 os.system(f'xdg-open "{filepath}"')
                         except Exception as e:
                             display.show_error(f"Failed to open file in browser: {str(e)}")
                     else:
-                        # Read and display the file content
                         content = self.exporter.view_result_file(filename)
                         display.clear_screen()
                         display.show_banner(self.config)
@@ -407,7 +375,6 @@ class Menu:
                 display.get_input("Press Enter to continue...")
     
     async def _show_settings_menu(self):
-        """Display settings menu and handle user input"""
         display.clear_screen()
         display.show_banner(self.config)
         
@@ -436,7 +403,6 @@ class Menu:
             formats_input = display.get_input("Enter formats (comma separated, e.g., json,html): ")
             formats = [fmt.strip().lower() for fmt in formats_input.split(",")]
             
-            # Validate formats
             valid_formats = [fmt for fmt in formats if fmt in self.exporter.supported_formats]
             
             if valid_formats:
@@ -450,13 +416,13 @@ class Menu:
         elif choice == "3":
             display.clear_screen()
             display.show_banner(self.config)
-            print(f"\nCurrent request timeout: {self.config.TIMEOUT} seconds")
+            print(f"\nCurrent request timeout: {self.config.CONNECTION_TIMEOUT} seconds")
             
             timeout_input = display.get_input("Enter new timeout in seconds (5-60): ")
             try:
                 timeout = float(timeout_input)
                 if 5 <= timeout <= 60:
-                    self.config.TIMEOUT = timeout
+                    self.config.CONNECTION_TIMEOUT = int(timeout)
                     self.config.save_config()
                     display.show_success(f"Request timeout updated to {timeout} seconds")
                 else:
@@ -468,13 +434,13 @@ class Menu:
         elif choice == "4":
             display.clear_screen()
             display.show_banner(self.config)
-            print(f"\nCurrent maximum concurrent requests: {self.config.MAX_CONCURRENT_REQUESTS}")
+            print(f"\nCurrent maximum concurrent requests: {self.config.MAX_CONCURRENT_TASKS}")
             
             requests_input = display.get_input("Enter new maximum (10-100): ")
             try:
                 max_requests = int(requests_input)
                 if 10 <= max_requests <= 100:
-                    self.config.MAX_CONCURRENT_REQUESTS = max_requests
+                    self.config.MAX_CONCURRENT_TASKS = max_requests
                     self.config.save_config()
                     display.show_success(f"Maximum concurrent requests updated to {max_requests}")
                 else:
@@ -487,7 +453,6 @@ class Menu:
             self.current_menu = "main"
     
     async def _show_help_menu(self):
-        """Display help menu and handle user input"""
         display.clear_screen()
         display.show_banner(self.config)
         
@@ -497,7 +462,6 @@ class Menu:
         self.current_menu = "main"
     
     def _exit_program(self):
-        """Exit the program"""
         self.running = False
         adv_logger.log_info("Exiting Admin Panel Finder")
         display.clear_screen()
@@ -507,19 +471,20 @@ class Menu:
         print("\nExiting...\n")
     
     def _validate_url(self, url):
-        """Validate the URL format"""
         if not re.match(r'^https?://[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}', url):
             return False, url
         return True, url
 
-async def start_menu(config: Config):
-    """Initialize and start the menu system
-    
-    Args:
-        config: Application configuration
+    def _show_import_target_dialog(self):
+        from scripts.ui import display
         
-    Returns:
-        None
-    """
+        display.clear_screen()
+        display.show_banner(self.config)
+        
+        display.show_info("Import Target List")
+        display.show_warning("This feature is not fully implemented yet")
+        display.get_input("Press Enter to continue...")
+
+async def start_menu(config: Config):
     menu = Menu(config)
     await menu.start()
