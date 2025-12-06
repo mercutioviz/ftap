@@ -303,20 +303,40 @@ class ResultExporter:
             
         export_status = {}
         
-        base_target_url = scan_info.get("target_url", "")
-        if base_target_url:
-            parsed = urlparse(base_target_url)
-            base_domain = parsed.netloc
-            timestamp = self._get_timestamp()
-            base_filename = f"{base_domain}_{timestamp}" if base_domain else f"scan_{timestamp}"
+        # If no custom filename provided, auto-generate from URL with timestamp
+        if not base_filename:
+            base_target_url = scan_info.get("target_url", "")
+            if base_target_url:
+                parsed = urlparse(base_target_url)
+                base_domain = parsed.netloc
+                timestamp = self._get_timestamp()
+                base_filename = f"{base_domain}_{timestamp}" if base_domain else f"scan_{timestamp}"
         
         for fmt in formats_to_export:
             if fmt not in self.supported_formats:
                 adv_logger.log_warning(f"Unsupported export format: {fmt}")
                 export_status[fmt] = False
                 continue
+            
+            # If custom filename provided, use it directly without timestamp
+            if base_filename:
+                safe_basename = os.path.basename(base_filename)
                 
-            filename = self._get_result_filename(base_filename, fmt)
+                # Check if filename already has an extension
+                name_parts = os.path.splitext(safe_basename)
+                if name_parts[1]:  # Has extension
+                    # If extension matches format, use as-is
+                    if name_parts[1].lower() == f".{fmt}":
+                        filename = f"{self.results_dir}/{safe_basename}"
+                    else:
+                        # Has wrong extension, replace it with correct one
+                        filename = f"{self.results_dir}/{name_parts[0]}.{fmt}"
+                else:
+                    # No extension, add it
+                    filename = f"{self.results_dir}/{safe_basename}.{fmt}"
+            else:
+                # Auto-generate with timestamp
+                filename = self._get_result_filename("", fmt)
             
             if fmt == "json":
                 export_status[fmt] = self._export_json(results, scan_info, filename)

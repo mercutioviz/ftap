@@ -19,7 +19,7 @@ from scripts.scan_helper import auto_update_wordlist
 adv_logger = get_logger('logs')
 
 
-async def scan_target(config, target_url, wordlist_path=None, export_format="", interactive=False):
+async def scan_target(config, target_url, wordlist_path=None, export_format="", interactive=False, custom_filename=None):
     display = TerminalDisplay()
     
     if not wordlist_path:
@@ -160,7 +160,7 @@ async def scan_target(config, target_url, wordlist_path=None, export_format="", 
                 print("Exporting results...")
             
             export_format = export_format or config.EXPORT_FORMATS[0] or "txt"
-            export_status = exporter.export_results(results, scan_info, export_format)
+            export_status = exporter.export_results(results, scan_info, export_format, custom_filename or "")
             
             if interactive:
                 display.show_success("Results exported successfully")
@@ -233,6 +233,8 @@ async def main():
         parser.add_argument("-u", "--url", help="Target URL to scan")
         parser.add_argument("-w", "--wordlist", help="Path to wordlist file")
         parser.add_argument("-e", "--export", help="Export format (json, html, csv, txt)")
+        parser.add_argument("-d", "--directory", help="Results directory (default: 'results')")
+        parser.add_argument("-f", "--filename", help="Custom output filename (without extension)")
         parser.add_argument("-i", "--interactive", action="store_true", help="Run in interactive mode")
         parser.add_argument("-v", "--version", action="store_true", help="Show version and exit")
         parser.add_argument("--update-wordlist", action="store_true", help="Update wordlists with latest paths")
@@ -274,6 +276,10 @@ async def main():
             config.USE_PATH_FUZZING = True
             adv_logger.log_info("Path fuzzing capabilities enabled")
             
+        if hasattr(config, 'RESULTS_DIR') and args.directory:
+            config.RESULTS_DIR = args.directory
+            adv_logger.log_info(f"Custom results directory: {args.directory}")
+
         if args.concurrency and args.concurrency > 0:
             config.MAX_CONCURRENT_TASKS = args.concurrency
             adv_logger.log_info(f"Concurrency set to {args.concurrency}")
@@ -281,7 +287,7 @@ async def main():
         if args.interactive or not args.url:
             await start_menu(config)
         else:
-            await scan_target(config, args.url, args.wordlist, args.export, False)
+            await scan_target(config, args.url, args.wordlist, args.export, False, args.filename)
             
     except KeyboardInterrupt:
         print("\n\nScan interrupted by user")
