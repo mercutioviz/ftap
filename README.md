@@ -52,6 +52,8 @@ python finder.py --url https://example.com --detection-mode aggressive --concurr
 - `-u, --url`: Target URL to scan
 - `-w, --wordlist`: Path to wordlist file (default: paths/general_paths.json)
 - `-e, --export`: Export format (json, html, csv, txt)
+- `-f, --filename`: Output file name (Custom CLI option added by mercutioviz)
+- `-d, --directory`: Output directory (Custom CLI option added by mercutioviz)
 - `-i, --interactive`: Run in interactive mode with UI
 - `-v, --version`: Show version and exit
 - `--detection-mode`: Set the detection mode (simple, stealth, aggressive)
@@ -165,3 +167,4 @@ This tool is for educational purposes only. Use responsibly and only on systems 
 
 Developed and maintained by DV64 © 2025.  
 All rights reserved.
+
